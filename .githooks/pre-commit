@@ -2,17 +2,18 @@
 FILES=$(git diff --cached --name-only --diff-filter=ACMR | sed 's| |\\ |g')
 [ -z "$FILES" ] && exit 0
 
-# Lint all selected files
-
 # Get only files that are in src
 SRC_FILES=$(echo "$FILES" | grep "^src/")
 
-echo "$SRC_FILES" | xargs yarn lint
+# Lint all selected files
+echo "$SRC_FILES" | xargs yarn lint --fix
 
 # Prettify all selected files
 echo "$FILES" | xargs yarn prettier
 
 # Add back the modified files to staging
 echo "$FILES" | xargs git add
+
+yarn test --bail --findRelatedTests $SRC_FILES
 
 exit 0

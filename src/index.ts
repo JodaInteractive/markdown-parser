@@ -7,28 +7,19 @@ marked.use({
 	breaks: false,
 });
 
-export type Output = {
-	frontmatter: FrontMatter;
+export type ParsedOutput<
+	T = {
+		[key: string]: string;
+	},
+> = {
+	frontmatter: T;
 	html: string;
 };
 
-type FrontMatter = {
-	[key: string]: string;
-};
-
-const frontmatterRegex = RegExp(/---\n([\s\S]*?)\n---/);
-const parseFrontmatter = (content: string): FrontMatter => {
-	const match = frontmatterRegex.exec(content);
-	if (!match) return {};
-
-	return JSON.parse(match[1] ?? '{}') as FrontMatter;
-};
-
-export const parse = async (content: string): Promise<Output> => {
-	const frontmatter = parseFrontmatter(content);
-	const html = await marked.parse(content);
+export async function parse<T>(content: string): Promise<ParsedOutput<T>> {
+	const matches = RegExp(/---\n([\s\S]*?)\n---\n([\s\S]*?)$/).exec(content)!;
 	return {
-		frontmatter,
-		html,
+		frontmatter: JSON.parse(matches[1]),
+		html: await marked.parse(matches[2]),
 	};
-};
+}
